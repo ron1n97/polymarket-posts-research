@@ -1,0 +1,5 @@
+mode,trades,wins,win_rate,total_pnl,avg_pnl,note
+all,18,2,11.1111,1.131,0.0628,YES-dominated; one cheap YES lottery drives total PnL
+no_only,2,2,100.0,0.385,0.1925,same 2 NO upper trades as validated filter
+no_upper_only,2,2,100.0,0.385,0.1925,selected / validated live family
+no_upper_plus_middle,2,2,100.0,0.385,0.1925,no extra trades vs no_upper_only here

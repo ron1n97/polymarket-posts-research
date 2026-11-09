@@ -56,13 +56,33 @@ class Trade:
 
 @lru_cache(maxsize=None)
 def fetch_json(url: str):
-    result = subprocess.run(
-        ["curl", "-s", url],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return json.loads(result.stdout)
+    """Fetch JSON with retries. Prefer requests; fall back to curl."""
+    last_error: Exception | None = None
+    try:
+        import requests
+
+        for attempt in range(4):
+            try:
+                response = requests.get(url, timeout=45)
+                response.raise_for_status()
+                return response.json()
+            except Exception as exc:  # noqa: BLE001 - network retry surface
+                last_error = exc
+                if attempt == 3:
+                    break
+    except ImportError:
+        pass
+
+    for attempt in range(3):
+        result = subprocess.run(
+            ["curl", "-sS", "--retry", "3", "--retry-delay", "1", url],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return json.loads(result.stdout)
+        last_error = RuntimeError(result.stderr.strip() or f"curl exit {result.returncode}")
+    raise RuntimeError(f"Failed to fetch {url}: {last_error}")
 
 
 def parse_dt(value: str) -> datetime:

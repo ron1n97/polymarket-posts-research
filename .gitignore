@@ -5,7 +5,8 @@ __pycache__/
 .env
 .claude/
 
-# local caches / raw dumps — curate later for public extract
+# local caches / raw dumps
 data/
-*.csv
-!prices.*.example.txt
+prices.txt
+
+# keep curated public artifacts tracked: results/ figures/ docs/

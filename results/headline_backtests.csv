@@ -1,0 +1,3 @@
+series,windows_tested,mode,entry_hours,min_edge,max_trades_per_window,trades,wins,win_rate,total_pnl,avg_pnl,status
+trump,20,no_upper_only,24,0.1,1,2,2,100.0,0.385,0.1925,validated_family_tiny_n
+elon,7,no_upper_only,24,0.1,1,2,2,100.0,0.264,0.132,exploratory_only

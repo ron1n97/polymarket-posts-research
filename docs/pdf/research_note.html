@@ -1,0 +1,310 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>
+<title>Polymarket Posts Research Note</title>
+<style>
+@page { margin: 16mm; }
+body { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 11pt; line-height: 1.42; color: #1a1a1a; max-width: 740px; margin: 0 auto; padding: 20px 14px 40px; }
+h1 { font-size: 1.55rem; line-height: 1.2; margin: 0 0 0.5em; }
+h2 { font-size: 1.2rem; margin-top: 1.4em; border-bottom: 1px solid #ddd; padding-bottom: 0.15em; }
+h3 { font-size: 1.02rem; margin-top: 1.1em; }
+img { max-width: 100%; height: auto; display: block; margin: 0.9em auto; }
+code, pre { font-family: ui-monospace, Menlo, monospace; font-size: 0.86em; }
+pre { background: #f6f6f6; padding: 10px; overflow-x: auto; border-radius: 4px; }
+table { border-collapse: collapse; width: 100%; margin: 0.9em 0; font-size: 0.9em; }
+th, td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; vertical-align: top; }
+th { background: #f0f0f0; }
+a { color: #0b57d0; text-decoration: none; }
+</style></head><body><h1
+id="research-note-polymarket-post-count-markets-truth-social-elon">Research
+Note: Polymarket Post-Count Markets (Truth Social / Elon)</h1>
+<p><strong>Author:</strong> ron1n97<br />
+<strong>Status:</strong> portfolio research write-up — <strong>weakest
+empirical sample</strong> of the Polymarket series<br />
+<strong>Stack:</strong> Python, XTracker counts, Polymarket Gamma + CLOB
+history, live signal toolkit<br />
+<strong>Code:</strong> this repository</p>
+<hr />
+<h2 id="abstract">Abstract</h2>
+<p>I built a regime / arithmetic framework for Polymarket
+<strong>overlapping weekly post-count</strong> markets (Trump Truth
+Social; exploratory Elon tweet weeklies). The useful idea is not
+“forecast the exact total,” but translate each bin into a
+<strong>required posts/day</strong> on remaining time and fade upper
+bins that still need a sustained spike while the market prices them as
+central.</p>
+<p><strong>Honest headline:</strong> under the historically preferred
+live family (<code>NO</code> on upper bins only, ~24h after open, min
+edge 10%, one trade per window) the Trump backtest on
+<strong>20</strong> closed windows produces only <strong>2</strong>
+trades — both winners (<strong>+0.385</strong> PnL/share total). That is
+<strong>interesting and operationally clean</strong>, not a
+statistically proven income strategy. Broad <code>mode=all</code> takes
+<strong>18</strong> mostly-YES trades with <strong>11%</strong> win
+rate; total PnL stays positive only because of a <strong>lottery
+skew</strong> (one near-zero YES that paid ~+1).</p>
+<p>Elon weekly support is <strong>exploratory</strong> (7 weekly windows
+matched; same tiny-N pattern).</p>
+<figure>
+<img src="../../figures/sample_size_warning.png" alt="Sample size" />
+<figcaption aria-hidden="true">Sample size</figcaption>
+</figure>
+<hr />
+<h2 id="market-structure">1. Market structure</h2>
+<p>Series studied:</p>
+<ul>
+<li>Trump: <code>donald-trump-of-truth-social-posts-*</code> (Truth
+Social via XTracker)</li>
+<li>Elon: weekly <code>elon-tweets</code> windows (exploratory)</li>
+</ul>
+<p>Windows <strong>overlap</strong>. Adjacent markets share day blocks,
+so prices that treat them as independent weekly totals are often wrong.
+Resolution follows XTracker-style counting (reposts / quotes matter;
+spikes move prices faster than fair value).</p>
+<p>Core translation for bin <code>[L, H]</code>:</p>
+<ul>
+<li><code>need_low = max(L - current_total, 0)</code></li>
+<li><code>req_low = need_low / days_remaining</code> (same for
+high)</li>
+</ul>
+<p>Map required rate to crude regimes: quiet / base / active / spike.
+Trade when market-implied odds disagree with that regime map.</p>
+<figure>
+<img src="../../figures/research_path.png" alt="Research path" />
+<figcaption aria-hidden="true">Research path</figcaption>
+</figure>
+<hr />
+<h2 id="what-validated-means-here">2. What “validated” means here</h2>
+<p>In this repo, <strong>validated</strong> means: a trade family that
+survived historical filters and was wired into the live CLI defaults —
+<strong>not</strong> “large-N proven alpha.”</p>
+<p>Selected Trump defaults (<code>scripts/live_signal.py</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Family</td>
+<td><code>no_upper_only</code> (<code>NO</code> on <code>80-99</code>,
+<code>100-119</code>)</td>
+</tr>
+<tr>
+<td>Entry</td>
+<td>first observation ≥ ~24h after window start</td>
+</tr>
+<tr>
+<td>Min model edge</td>
+<td>0.10</td>
+</tr>
+<tr>
+<td>Cap</td>
+<td>1 strongest trade per window</td>
+</tr>
+</tbody>
+</table>
+<p>Backtest (20 closed windows, CLOB history + XTracker):</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows tested</td>
+<td><strong>20</strong></td>
+</tr>
+<tr>
+<td>Trades</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td>Wins</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td>Win rate</td>
+<td><strong>100%</strong> (on n=2)</td>
+</tr>
+<tr>
+<td>Total PnL / share</td>
+<td><strong>+0.385</strong></td>
+</tr>
+<tr>
+<td>Avg PnL / trade</td>
+<td><strong>+0.193</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Both trades were <code>NO 100-119</code> in Sep/Oct 2026 windows.
+Treat 100% WR as a <strong>red flag for sample size</strong>, not a
+trophy.</p>
+<figure>
+<img src="../../figures/series_status.png" alt="Series status" />
+<figcaption aria-hidden="true">Series status</figcaption>
+</figure>
+<hr />
+<h2 id="ablations-why-the-filter-exists">3. Ablations — why the filter
+exists</h2>
+<p>Same 20 windows, entry=24h, min_edge=0.10, max 1 trade/window:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Trades</th>
+<th>Win rate</th>
+<th>Total PnL / share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>all</code></td>
+<td>18</td>
+<td>11.1%</td>
+<td>+1.131</td>
+</tr>
+<tr>
+<td><code>no_only</code></td>
+<td>2</td>
+<td>100%</td>
+<td>+0.385</td>
+</tr>
+<tr>
+<td><strong><code>no_upper_only</code> (selected)</strong></td>
+<td><strong>2</strong></td>
+<td><strong>100%</strong></td>
+<td><strong>+0.385</strong></td>
+</tr>
+<tr>
+<td><code>no_upper_plus_middle</code></td>
+<td>2</td>
+<td>100%</td>
+<td>+0.385</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="../../figures/mode_comparison.png" alt="Mode comparison" />
+<figcaption aria-hidden="true">Mode comparison</figcaption>
+</figure>
+<p><code>mode=all</code> is almost entirely <strong>YES</strong>. Win
+rate collapses; total PnL is propped up by skew:</p>
+<figure>
+<img src="../../figures/yes_lottery_skew.png" alt="YES lottery" />
+<figcaption aria-hidden="true">YES lottery</figcaption>
+</figure>
+<p>One YES entered near <strong>0.5¢</strong> and paid
+~<strong>+0.995</strong>. Median trade in that set is still a small
+loss. <strong>Do not</strong> promote <code>all</code> as the live
+family.</p>
+<p>Sensitivity on <code>no_upper_only</code> (entry hours × min edge)
+never escapes tiny N — cells are <strong>1–5</strong> trades, still
+often 100% WR:</p>
+<figure>
+<img src="../../figures/sensitivity_heatmap.png" alt="Sensitivity" />
+<figcaption aria-hidden="true">Sensitivity</figcaption>
+</figure>
+<p>Loose edges (<code>min_edge=0.05</code>, entry 24–48h) add a few more
+trades and more total PnL, but the story remains <strong>sparse
+selective NO</strong>, not a high-throughput system.</p>
+<hr />
+<h2 id="elon-weekly-exploratory">4. Elon weekly (exploratory)</h2>
+<p><code>ELON_WEEKLY.md</code> / <code>scripts/elon_*</code> are
+intentionally <strong>not</strong> promoted to the same status as
+Trump.</p>
+<p>Exploratory <code>no_upper_only</code> run (weekly windows only; 15
+requested → <strong>7</strong> matched): <strong>2</strong> trades,
+<strong>2</strong> wins, <strong>+0.264</strong> PnL/share. Same
+pathology: filter fires rarely; perfect WR means almost nothing.</p>
+<p>Next step before validation: longer sample, confirm a stable trade
+family, only then share live defaults with Trump.</p>
+<hr />
+<h2 id="ops-toolkit-what-is-actually-strong">5. Ops toolkit (what is
+actually strong)</h2>
+<p>Even with weak statistics, the repo is a clean <strong>research →
+signal → size → snapshot</strong> loop:</p>
+<ol type="1">
+<li><code>live_signal.py</code> / <code>daily_run.py</code> — current
+preferred Trump (+ Elon exploratory) printout<br />
+</li>
+<li><code>position_size.py</code> — bankroll → simple share plans<br />
+</li>
+<li><code>truth_social_rank.py</code> — full ranking with mode / window
+flags<br />
+</li>
+<li><code>truth_social_snapshot.py</code> — JSONL state for later
+analysis<br />
+</li>
+<li><code>backtest_truth_social_baseline.py</code> (+ sensitivity) —
+historical filter tests</li>
+</ol>
+<p>That operational clarity is the portfolio asset. The missing asset is
+<strong>sample size</strong>.</p>
+<hr />
+<h2 id="what-this-is-is-not">6. What this is / is not</h2>
+<p><strong>Is:</strong> a curated note on overlapping post-count market
+microstructure, a selective <code>NO</code>-upper thesis, honest tiny-N
+backtests, and a usable daily toolkit.</p>
+<p><strong>Is not:</strong> a claim of durable live alpha; a
+high-frequency weather/BTC-scale evidence pack; or a finished Elon
+strategy.</p>
+<p>Compared with sibling repos:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Repo</th>
+<th>Evidence strength</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>polymarket-btc-5m-research</td>
+<td>Strong negative-result economics story</td>
+</tr>
+<tr>
+<td>polymarket-weather-research</td>
+<td>Larger edge backtest + clear regime hierarchy</td>
+</tr>
+<tr>
+<td><strong>this repo</strong></td>
+<td>Strong framework, <strong>weak N</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="takeaways">7. Takeaways</h2>
+<ol type="1">
+<li><strong>Overlapping windows + required-rate math</strong> are the
+right abstraction.<br />
+</li>
+<li><strong>Unfiltered YES hunting looks profitable until you see the
+lottery skew.</strong><br />
+</li>
+<li><strong>Validated live defaults = sparse NO upper</strong> — clean,
+not proven.<br />
+</li>
+<li><strong>n=2 at 100% WR is a warning label</strong>, not a
+pitch.<br />
+</li>
+<li>Elon stays exploratory until the sample grows.</li>
+</ol>
+<hr />
+<h2 id="reproduce">Reproduce</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/make_figures.py</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># network required — historical XTracker + CLOB</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/backtest_truth_social_baseline.py <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--windows</span> 20 <span class="at">--entry-hours</span> 24 <span class="at">--min-edge</span> 0.10 <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--max-trades-per-window</span> 1 <span class="at">--mode</span> no_upper_only</span></code></pre></div>
+<p>Figures rebuild from <code>results/</code> without re-hitting the
+APIs.</p>
+</body></html>
