@@ -1,0 +1,11 @@
+# Paste one price per line in the format:
+# slug|low-high|price
+# You can use either percent prices like 15 or decimal prices like 0.15
+
+donald-trump-of-truth-social-posts-march-31-april-7|60-79|31
+donald-trump-of-truth-social-posts-march-31-april-7|80-99|49
+donald-trump-of-truth-social-posts-march-31-april-7|100-119|8
+
+donald-trump-of-truth-social-posts-april-3-april-10|60-79|15
+donald-trump-of-truth-social-posts-april-3-april-10|80-99|38
+donald-trump-of-truth-social-posts-april-3-april-10|100-119|33

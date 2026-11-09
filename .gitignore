@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.claude/
+
+# local caches / raw dumps — curate later for public extract
+data/
+*.csv
+!prices.*.example.txt
